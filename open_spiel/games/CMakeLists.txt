@@ -19,6 +19,8 @@ set(GAME_SOURCES
   chess/chess_board.h
   chess/chess_common.cc
   chess/chess_common.h
+  chinese_chess.cc
+  chinese_chess.h
   cliff_walking.cc
   cliff_walking.h
   clobber.cc
@@ -387,6 +389,10 @@ add_test(tarok_test tarok_test)
 add_executable(tic_tac_toe_test tic_tac_toe_test.cc ${OPEN_SPIEL_OBJECTS}
                $<TARGET_OBJECTS:tests>)
 add_test(tic_tac_toe_test tic_tac_toe_test)
+
+add_executable(chinese_chess_test chinese_chess_test.cc ${OPEN_SPIEL_OBJECTS}
+               $<TARGET_OBJECTS:tests>)
+add_test(chinese_chess_test chinese_chess_test)
 
 add_executable(laser_tag_test laser_tag_test.cc ${OPEN_SPIEL_OBJECTS}
                $<TARGET_OBJECTS:tests>)

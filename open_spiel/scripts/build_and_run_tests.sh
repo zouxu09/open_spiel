@@ -221,7 +221,7 @@ else
     make -j$MAKE_NUM_PROCS
 
     if [[ $ARG_build_only == "true" ]]; then
-      echo -e "\033[32m*** Skipping runing tests as build_only is $(ARG_build_only) \e[0m"
+      echo -e "\033[32m*** Skipping runing tests as build_only is ${ARG_build_only} \e[0m"
     else
       # Test everything
       echo "Running all tests"

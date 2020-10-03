@@ -85,6 +85,3 @@ def _add_tests():
 if __name__ == "__main__":
   _add_tests()
   absltest.main()
-
-
-

@@ -34,6 +34,7 @@ EXPECTED_GAMES = set([
     "bridge_uncontested_bidding",
     "catch",
     "chess",
+    "chinese_chess",
     "cliff_walking",
     "clobber",
     "coin_game",
