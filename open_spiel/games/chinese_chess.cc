@@ -52,6 +52,7 @@ REGISTER_SPIEL_GAME(kGameType, Factory);
 
 }  // namespace
 
+// ChineseChessState
 void ChineseChessState::DoApplyAction(Action move) {
 }
 
@@ -108,19 +109,7 @@ std::unique_ptr<State> ChineseChessState::Clone() const {
   return std::unique_ptr<State>(new ChineseChessState(*this));
 }
 
-// Game
-int ChineseChessGame::NumDistinctActions() const {
-  return 0;
-}
-
-std::vector<int> ChineseChessGame::ObservationTensorShape() const {
-  return {};
-}
-
-int ChineseChessGame::MaxGameLength() const {
-  return 0;
-}
-
+// ChineseChessGame
 ChineseChessGame::ChineseChessGame(const GameParameters& params)
     : Game(kGameType, params) {}
 

@@ -14,6 +14,7 @@
 
 #include "open_spiel/spiel.h"
 #include "open_spiel/tests/basic_tests.h"
+#include "open_spiel/games/chinese_chess/board.h"
 
 namespace open_spiel {
 namespace chinese_chess {
@@ -27,10 +28,16 @@ void BasicChineseChessTests() {
   testing::RandomSimTest(*LoadGame("chinese_chess"), 100);
 }
 
+void FENGenerateAndParseTests() {
+  Board root_state = MakeDefaultBoard();
+  SPIEL_CHECK_EQ(root_state.ToFEN(), "rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1");
+}
+
 }  // namespace
 }  // namespace chinese_chess
 }  // namespace open_spiel
 
 int main(int argc, char** argv) {
-  open_spiel::chinese_chess::BasicChineseChessTests();
+  // open_spiel::chinese_chess::BasicChineseChessTests();
+  open_spiel::chinese_chess::FENGenerateAndParseTests();
 }

@@ -25,3 +25,9 @@ Run playthrough_test
 ```bash
 python ./open_spiel/integration_tests/playthrough_test.py
 ```
+
+# Implementation chinese_chess board
+
+- Board definition
+- Initial board from FEN
+- Chinese Chess rules

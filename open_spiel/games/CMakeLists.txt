@@ -21,6 +21,8 @@ set(GAME_SOURCES
   chess/chess_common.h
   chinese_chess.cc
   chinese_chess.h
+  chinese_chess/board.cc
+  chinese_chess/board.h
   cliff_walking.cc
   cliff_walking.h
   clobber.cc

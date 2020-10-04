@@ -209,7 +209,7 @@ else
     if [[ $ARG_build_only == "true" ]]; then
       echo -e "\033[32m*** Skipping runing tests as build_only is $(ARG_build_only) \e[0m"
     else
-      if ctest -j$TEST_NUM_PROCS --output-on-failure -R "^$ARG_test_only\$" ../open_spiel; then
+      if ctest -j$TEST_NUM_PROCS --verbose --output-on-failure -R "^$ARG_test_only\$" ../open_spiel; then
         print_tests_passed
       else
         print_tests_failed

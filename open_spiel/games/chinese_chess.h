@@ -32,6 +32,8 @@ namespace chinese_chess {
 
 // Constants.
 inline constexpr int kNumPlayers = 2;
+inline constexpr int kNumDistinctActions = 1500;
+inline constexpr int kMaxGameLength = 512;
 
 class ChineseChessState : public State {
  public:
@@ -61,7 +63,7 @@ class ChineseChessState : public State {
 class ChineseChessGame : public Game {
  public:
   explicit ChineseChessGame(const GameParameters& params);
-  int NumDistinctActions() const override;
+  int NumDistinctActions() const override { return kNumDistinctActions; };
   std::unique_ptr<State> NewInitialState() const override {
     return std::unique_ptr<State>(new ChineseChessState(shared_from_this()));
   }
@@ -69,8 +71,8 @@ class ChineseChessGame : public Game {
   double MinUtility() const override { return -1; }
   double UtilitySum() const override { return 0; }
   double MaxUtility() const override { return 1; }
-  std::vector<int> ObservationTensorShape() const override;
-  int MaxGameLength() const override;
+  std::vector<int> ObservationTensorShape() const override { return {}; };
+  int MaxGameLength() const override { return kMaxGameLength; };
 };
 
 }  // namespace chinese_chess
