@@ -122,6 +122,35 @@ std::string Board::ToFEN() const {
   return fen;
 }
 
+std::string Board::DebugString() const {
+  std::string s;
+  s = absl::StrCat("FEN: ", ToFEN(), "\n");
+  // absl::StrAppend(&s, "\n  ---------------------------------\n");
+  for (int8_t y = 0; y < kBoardRows; ++y) {
+    // Row label.
+    absl::StrAppend(&s, RowToString(y), " ");
+
+    // Pieces on the row.
+    for (int8_t x = 0; x < kBoardCols; ++x) {
+      absl::StrAppend(&s, "|", at(ToPoint(x,y)).ToString());
+    }
+    absl::StrAppend(&s, "|\n");
+    // absl::StrAppend(&s, "  ---------------------------------\n");
+  }
+
+  // Col labels.
+  absl::StrAppend(&s, "   ");
+  for (int8_t x = 0; x < kBoardCols; ++x) {
+    absl::StrAppend(&s, ColToString(x), " ");
+  }
+  absl::StrAppend(&s, "\n");
+
+  absl::StrAppend(&s, "To play: ", to_play_ == Color::kRed ? "W" : "B", "\n");
+  absl::StrAppend(&s, "Move number: ", move_number_, "\n\n");
+  absl::StrAppend(&s, "\n");
+  return s;
+}
+
 // Helper functions
 
 absl::optional<PieceType> PieceTypeFromChar(char c) {

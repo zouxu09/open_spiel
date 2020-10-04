@@ -44,6 +44,14 @@ inline Point ToPoint(int x, int y) {
   return y * kBoardCols + x;
 }
 
+inline std::string RowToString(int8_t row) {
+  return std::string(1, '1' + row);
+}
+
+inline std::string ColToString(int8_t col) {
+  return std::string(1, 'a' + col);
+}
+
 enum class PieceType : int8_t {
   kEmpty = 0,
   kKing = 1,
@@ -101,6 +109,7 @@ class Board {
   void SetMovenumber(int move_number);
 
   std::string ToFEN() const;
+  std::string DebugString() const;
 
  private:
   std::array<Piece, kBoardPoints> board_;
