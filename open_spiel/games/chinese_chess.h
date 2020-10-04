@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "open_spiel/spiel.h"
+#include "open_spiel/games/chinese_chess/board.h"
 
 // Chinese Chess (Xiangqi)
 // https://en.wikipedia.org/wiki/Xiangqi
@@ -32,8 +33,29 @@ namespace chinese_chess {
 
 // Constants.
 inline constexpr int kNumPlayers = 2;
-inline constexpr int kNumDistinctActions = 1500;
+inline constexpr int kNumDistinctActions = 524288;
 inline constexpr int kMaxGameLength = 512;
+
+inline constexpr double LossUtility() { return -1; }
+inline constexpr double DrawUtility() { return 0; }
+inline constexpr double WinUtility() { return 1; }
+
+class Move;
+
+Action MoveToAction(const Move& move);
+Move ActionToMove(const Action& action);
+
+inline int ColorToPlayer(Color c) {
+  if (c == Color::kRed) {
+    return 0;
+  } else if (c == Color::kBlack) {
+    return 1;
+  } else {
+    SpielFatalError("Unknown color");
+  }
+}
+
+inline int OtherPlayer(Player player) { return player == Player{0} ? 1 : 0; }
 
 class ChineseChessState : public State {
  public:
@@ -42,7 +64,10 @@ class ChineseChessState : public State {
   ChineseChessState(const ChineseChessState&) = default;
   ChineseChessState& operator=(const ChineseChessState&) = default;
 
-  Player CurrentPlayer() const override;
+  Player CurrentPlayer() const override {
+    return IsTerminal() ? kTerminalPlayerId : ColorToPlayer(CurrentBoard().ToPlay());
+  }
+
   std::string ActionToString(Player player, Action action_id) const override;
   std::string ToString() const override;
   bool IsTerminal() const override;
@@ -55,8 +80,36 @@ class ChineseChessState : public State {
   void UndoAction(Player player, Action move) override;
   std::vector<Action> LegalActions() const override;
 
+  // Current board.
+  Board& CurrentBoard() { return current_board_; }
+  const Board& CurrentBoard() const { return current_board_; }
+
+  // Starting board.
+  Board& StartBoard() { return start_board_; }
+  const Board& StartBoard() const { return start_board_; }
+
+  std::vector<Move>& MovesHistory() { return moves_history_; }
+  const std::vector<Move>& MovesHistory() const { return moves_history_; }
+
+  absl::optional<std::vector<double>> MaybeFinalReturns() const;
+
  protected:
   void DoApplyAction(Action move) override;
+
+ private:
+  void MaybeGenerateLegalActions() const;
+
+ private:
+  // We have to store every move made to check for repetitions and to implement
+  // undo. We store the current board position as an optimization.
+  std::vector<Move> moves_history_;
+  // We store the start board for history to support games not starting
+  // from the start position.
+  Board start_board_;
+  // We store the current board position as an optimization.
+  Board current_board_;
+
+  mutable absl::optional<std::vector<Action>> cached_legal_actions_;
 };
 
 // Game object.

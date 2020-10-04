@@ -27,7 +27,9 @@ enum class Color : uint8_t { kRed = 0, kBlack = 1, kEmpty = 2 };
 
 std::string ColorToString(Color c);
 
-Color OppColor(Color c);
+inline Color OppColor(Color color) {
+  return color == Color::kRed ? Color::kBlack : Color::kRed;
+}
 
 inline constexpr int kBoardRows = 10;
 inline constexpr int kBoardCols = 9;
@@ -61,8 +63,8 @@ inline constexpr std::array<Offset, 3> kPawnOffsets = {
     {{-1, 0}, {1, 0}, {0, 1}}};
 
 struct Point {
-  Point(int x, int y) : x(x), y(y), index(y*kBoardCols + x) {}
-  Point(int index) : x(index%kBoardCols), y(index/kBoardCols), index(index) {}
+  constexpr Point(int x, int y) : x(x), y(y), index(y*kBoardCols + x) {}
+  constexpr Point(int index) : x(index%kBoardCols), y(index/kBoardCols), index(index) {}
 
   Point& operator+=(const Offset& offset) {
     x += offset.x_offset;
@@ -103,6 +105,8 @@ inline std::string RowToString(int8_t row) {
 inline std::string ColToString(int8_t col) {
   return std::string(1, 'a' + col);
 }
+
+inline constexpr Point InvalidPoint() { return Point{-1, -1}; }
 
 enum class PieceType : int8_t {
   kEmpty = 0,
@@ -170,6 +174,7 @@ class Board {
   Color ToPlay() const { return to_play_; }
   void SetToPlay(Color c);
   void SetMovenumber(int move_number);
+  int GetMovenumber() const { return move_number_; }
 
   std::string ToFEN() const;
   std::string DebugString() const;
@@ -202,8 +207,32 @@ class Board {
     return piece.color != our_color;
   }
 
+  bool IsKingCheck(const Point& point, Color our_color) const {
+    Color oppColor = OppColor(our_color);
+    Piece oppKing{oppColor, PieceType::kKing};
+    const Point& oppKingPoint = find(oppKing);
+
+    if (oppKingPoint.x != point.x) {
+      return false;
+    }
+
+    int l = std::min(point.y, oppKingPoint.y);
+    int h = std::max(point.y, oppKingPoint.y);
+    for (int y = l+1; y < h; ++y) {
+      if (!IsEmpty(Point(point.x, y))) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  bool InCheck() const;
+
   using MoveYieldFn = std::function<bool(const Move&)>;
   void GenerateLegalMoves(const MoveYieldFn& yield) const;
+
+  void ApplyMove(const Move &move);
 
  private:
   template <typename YieldFn>
@@ -241,6 +270,8 @@ class Board {
   template <typename YieldFn>
   void DoGenerateCannonDestinations_(
     Point point, Color color, Offset offset_step, const YieldFn& yield) const;
+
+  Point find(const Piece &piece) const;
 
  private:
   std::array<Piece, kBoardPoints> board_;

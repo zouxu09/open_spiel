@@ -98,6 +98,20 @@ void Board::SetMovenumber(int move_number) {
   move_number_ = move_number;
 }
 
+// Check if king could be captured
+bool Board::InCheck() const {
+  bool is_in_check = false;
+  GenerateLegalMoves([this, &is_in_check](const Move& move) -> bool {
+      if (at(move.to) == Piece{OppColor(ToPlay()), PieceType::kKing}) {
+        is_in_check = true;
+        return false;
+      }
+      return true;
+    });
+
+  return is_in_check;
+}
+
 std::string Board::ToFEN() const {
   std::string fen;
 
@@ -184,7 +198,7 @@ void Board::GenerateKingDestinations_(
 
   for (const auto &offset : kOffsets) {
     Point dest = point + offset;
-    if (InKingsArea(dest) && IsEmptyOrEnemy(dest, color)) {
+    if (InKingsArea(dest) && IsEmptyOrEnemy(dest, color) && !IsKingCheck(dest, color)) {
       yield(dest);
     }
   }
@@ -381,6 +395,32 @@ void Board::GenerateLegalMoves(const MoveYieldFn& yield) const {
   }
 
 #undef YIELD
+}
+
+void Board::ApplyMove(const Move &move) {
+  Piece moving_piece = at(move.from);
+
+  SetPiece(move.from, kEmptyPiece);
+  SetPiece(move.to, moving_piece);
+
+  if (to_play_ == Color::kBlack) {
+    ++move_number_;
+  }
+
+  SetToPlay(OppColor(to_play_));
+}
+
+Point Board::find(const Piece &piece) const {
+  for (int8_t y = 0; y < kBoardRows; ++y) {
+    for (int8_t x = 0; x < kBoardCols; ++x) {
+      Point sq{x, y};
+      if (at(sq) == piece) {
+        return sq;
+      }
+    }
+  }
+
+  return InvalidPoint();
 }
 
 // Helper functions
