@@ -13,7 +13,7 @@ Run specific test
 
 Run example
 ```bash
-.build/examples/example --game=chinese_chess
+./build/examples/example --game=chinese_chess
 ```
 
 Update Python integration tests

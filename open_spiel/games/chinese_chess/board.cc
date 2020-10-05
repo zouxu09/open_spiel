@@ -98,8 +98,31 @@ void Board::SetMovenumber(int move_number) {
   move_number_ = move_number;
 }
 
+// Check if kings directly check each other
+bool Board::IsKingCheck() const {
+  Piece king{ToPlay(), PieceType::kKing};
+  const Point& king_point = find(king);
+
+  Piece opp_king{OppColor(ToPlay()), PieceType::kKing};
+  const Point& opp_king_point = find(opp_king);
+
+  if (opp_king_point.x != king_point.x) {
+    return false;
+  }
+
+  int l = std::min(king_point.y, opp_king_point.y);
+  int h = std::max(king_point.y, opp_king_point.y);
+  for (int y = l+1; y < h; ++y) {
+    if (!IsEmpty(Point(king_point.x, y))) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 // Check if king could be captured
-bool Board::InCheck() const {
+bool Board::CheckMate() const {
   bool is_in_check = false;
   GenerateLegalMoves([this, &is_in_check](const Move& move) -> bool {
       if (at(move.to) == Piece{OppColor(ToPlay()), PieceType::kKing}) {
@@ -109,7 +132,12 @@ bool Board::InCheck() const {
       return true;
     });
 
-  return is_in_check;
+  if (is_in_check)
+    return true;
+
+  Piece king{ToPlay(), PieceType::kKing};
+  const Point& king_point = find(king);
+  return IsKingCheck();
 }
 
 std::string Board::ToFEN() const {
@@ -198,7 +226,7 @@ void Board::GenerateKingDestinations_(
 
   for (const auto &offset : kOffsets) {
     Point dest = point + offset;
-    if (InKingsArea(dest) && IsEmptyOrEnemy(dest, color) && !IsKingCheck(dest, color)) {
+    if (InKingsArea(dest) && IsEmptyOrEnemy(dest, color)) {
       yield(dest);
     }
   }
@@ -316,7 +344,15 @@ void Board::GeneratePawnDestinations_(
         continue;
     }
 
-    Point dest = point + offset;
+    Offset direction;
+    direction.x_offset = offset.x_offset;
+    direction.y_offset = offset.y_offset;
+    // Black pawn move in opposite direction
+    if (color == Color::kBlack) {
+      direction.y_offset *= -1;
+    }
+
+    Point dest = point + direction;
     if (InBoardArea(dest) && IsEmptyOrEnemy(dest, color)) {
       yield(dest);
     }

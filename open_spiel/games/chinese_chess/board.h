@@ -119,6 +119,10 @@ enum class PieceType : int8_t {
   kPawn = 7
 };
 
+static inline constexpr std::array<PieceType, 7> kPieceTypes = {
+  {PieceType::kKing, PieceType::kAdvisor, PieceType::kRook,
+   PieceType::kBishop,PieceType::kKnight, PieceType::kCannon, PieceType::kPawn}};
+
 struct Piece {
   bool operator==(const Piece& other) const {
     return type == other.type && color == other.color;
@@ -207,27 +211,8 @@ class Board {
     return piece.color != our_color;
   }
 
-  bool IsKingCheck(const Point& point, Color our_color) const {
-    Color oppColor = OppColor(our_color);
-    Piece oppKing{oppColor, PieceType::kKing};
-    const Point& oppKingPoint = find(oppKing);
-
-    if (oppKingPoint.x != point.x) {
-      return false;
-    }
-
-    int l = std::min(point.y, oppKingPoint.y);
-    int h = std::max(point.y, oppKingPoint.y);
-    for (int y = l+1; y < h; ++y) {
-      if (!IsEmpty(Point(point.x, y))) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  bool InCheck() const;
+  bool IsKingCheck() const;
+  bool CheckMate() const;
 
   using MoveYieldFn = std::function<bool(const Move&)>;
   void GenerateLegalMoves(const MoveYieldFn& yield) const;

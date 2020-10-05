@@ -36,7 +36,7 @@ int CountNumLegalMoves(const Board& board) {
 void BasicChineseChessTests() {
   testing::LoadGameTest("chinese_chess");
   testing::NoChanceOutcomesTest(*LoadGame("chinese_chess"));
-  testing::RandomSimTest(*LoadGame("chinese_chess"), 100);
+  testing::RandomSimTest(*LoadGame("chinese_chess"), 10);
 }
 
 void FENGenerateAndParseTests() {
@@ -66,7 +66,6 @@ void BoardTests() {
   std::cout << "Check if is empty: " << root_state.IsEmpty(Point{0, 3}) << std::endl;
 }
 
-
 void MoveGenerationTests() {
   Board root_state = MakeDefaultBoard();
   std::cout  << "Legal moves: " << CountNumLegalMoves(root_state) << std::endl;
@@ -82,15 +81,31 @@ void ActionsTests() {
   std::cout << m << std::endl;
 }
 
+void StateActionTests() {
+  std::shared_ptr<const Game> game = LoadGame("chinese_chess");
+  auto state = game->NewInitialState();
+  state->ObservationTensor();
+
+  while (!state->IsTerminal()) {
+    int random_num = rand();
+    auto legal_actions = state->LegalActions();
+    random_num = random_num % legal_actions.size();
+    auto action = legal_actions[random_num];
+    state->ApplyAction(action);
+    std::cout << state->ToString() << std::endl;
+  }
+}
+
 }  // namespace
 }  // namespace chinese_chess
 }  // namespace open_spiel
 
 int main(int argc, char** argv) {
-  // open_spiel::chinese_chess::BasicChineseChessTests();
-  open_spiel::chinese_chess::FENGenerateAndParseTests();
-  open_spiel::chinese_chess::PointTests();
-  open_spiel::chinese_chess::BoardTests();
-  open_spiel::chinese_chess::ActionsTests();
-  open_spiel::chinese_chess::MoveGenerationTests();
+  open_spiel::chinese_chess::BasicChineseChessTests();
+  // open_spiel::chinese_chess::FENGenerateAndParseTests();
+  // open_spiel::chinese_chess::PointTests();
+  // open_spiel::chinese_chess::BoardTests();
+  // open_spiel::chinese_chess::ActionsTests();
+  // open_spiel::chinese_chess::MoveGenerationTests();
+  // open_spiel::chinese_chess::StateActionTests();
 }

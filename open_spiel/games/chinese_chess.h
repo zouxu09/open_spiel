@@ -70,12 +70,14 @@ class ChineseChessState : public State {
 
   std::string ActionToString(Player player, Action action_id) const override;
   std::string ToString() const override;
-  bool IsTerminal() const override;
+  bool IsTerminal() const override {
+    return static_cast<bool>(MaybeFinalReturns());
+  }
   std::vector<double> Returns() const override;
   std::string InformationStateString(Player player) const override;
   std::string ObservationString(Player player) const override;
-  void ObservationTensor(Player player,
-                         absl::Span<float> values) const override;
+  void ObservationTensor(
+    Player player, absl::Span<float> values) const override;
   std::unique_ptr<State> Clone() const override;
   void UndoAction(Player player, Action move) override;
   std::vector<Action> LegalActions() const override;
@@ -94,7 +96,7 @@ class ChineseChessState : public State {
   absl::optional<std::vector<double>> MaybeFinalReturns() const;
 
  protected:
-  void DoApplyAction(Action move) override;
+  void DoApplyAction(Action action) override;
 
  private:
   void MaybeGenerateLegalActions() const;
@@ -124,7 +126,12 @@ class ChineseChessGame : public Game {
   double MinUtility() const override { return -1; }
   double UtilitySum() const override { return 0; }
   double MaxUtility() const override { return 1; }
-  std::vector<int> ObservationTensorShape() const override { return {}; };
+  std::vector<int> ObservationTensorShape() const override {
+    static std::vector<int> shape{
+        15 /* piece types * colours + empty */ + 1 /* side to move */,
+        kBoardRows, kBoardCols};
+    return shape;
+  };
   int MaxGameLength() const override { return kMaxGameLength; };
 };
 

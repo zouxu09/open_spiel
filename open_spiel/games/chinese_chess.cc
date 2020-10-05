@@ -52,6 +52,31 @@ std::shared_ptr<const Game> Factory(const GameParameters& params) {
 
 REGISTER_SPIEL_GAME(kGameType, Factory);
 
+// Adds a plane to the information state vector corresponding to the presence
+// and absence of the given piece type and colour at each square.
+void AddPieceTypePlane(
+  Color color, PieceType piece_type, const Board& board,
+  absl::Span<float>::iterator& value_it) {
+  for (int8_t y = 0; y < kBoardRows; ++y) {
+    for (int8_t x = 0; x < kBoardCols; ++x) {
+      Piece piece_on_board = board.at(Point{x, y});
+      *value_it++ =
+          (piece_on_board.color == color && piece_on_board.type == piece_type
+               ? 1.0
+               : 0.0);
+    }
+  }
+}
+
+// Adds a uniform scalar plane scaled with min and max.
+template <typename T>
+void AddScalarPlane(
+  T val, T min, T max, absl::Span<float>::iterator& value_it) {
+  double normalized_val = static_cast<double>(val - min) / (max - min);
+  for (int i = 0; i < kBoardRows * kBoardCols; ++i)
+    *value_it++ = normalized_val;
+}
+
 } // namespace
 
 Action MoveToAction(const Move& move) {
@@ -109,7 +134,12 @@ Move ActionToMove(const Action& action) {
 }
 
 // ChineseChessState
-void ChineseChessState::DoApplyAction(Action move) {
+void ChineseChessState::DoApplyAction(Action action) {
+  Move move = ActionToMove(action);
+  moves_history_.push_back(move);
+  CurrentBoard().ApplyMove(move);
+  // ++repetitions_[current_board_.HashValue()];
+  cached_legal_actions_.reset();
 }
 
 std::vector<Action> ChineseChessState::LegalActions() const {
@@ -120,7 +150,8 @@ std::vector<Action> ChineseChessState::LegalActions() const {
 
 std::string ChineseChessState::ActionToString(
   Player player, Action action_id) const {
-  return "";
+  Move move = ActionToMove(action_id);
+  return move.ToString();
 }
 
 ChineseChessState::ChineseChessState(std::shared_ptr<const Game> game)
@@ -130,16 +161,16 @@ ChineseChessState::ChineseChessState(std::shared_ptr<const Game> game)
 }
 
 std::string ChineseChessState::ToString() const {
-  std::string str;
-  return str;
-}
-
-bool ChineseChessState::IsTerminal() const {
-  return true;
+  return CurrentBoard().ToFEN();
 }
 
 std::vector<double> ChineseChessState::Returns() const {
-  return {0.0, 0.0};
+  auto maybe_final_returns = MaybeFinalReturns();
+  if (maybe_final_returns) {
+    return *maybe_final_returns;
+  } else {
+    return {0.0, 0.0};
+  }
 }
 
 std::string ChineseChessState::InformationStateString(Player player) const {
@@ -158,6 +189,22 @@ void ChineseChessState::ObservationTensor(
   Player player, absl::Span<float> values) const {
   SPIEL_CHECK_GE(player, 0);
   SPIEL_CHECK_LT(player, num_players_);
+
+  auto value_it = values.begin();
+
+  // Piece cconfiguration.
+  for (const auto& piece_type : kPieceTypes) {
+    AddPieceTypePlane(Color::kRed, piece_type, CurrentBoard(), value_it);
+    AddPieceTypePlane(Color::kBlack, piece_type, CurrentBoard(), value_it);
+  }
+
+  // Empty points
+  AddPieceTypePlane(Color::kEmpty, PieceType::kEmpty, CurrentBoard(), value_it);
+
+  // Side to play.
+  AddScalarPlane(ColorToPlayer(CurrentBoard().ToPlay()), 0, 1, value_it);
+
+  SPIEL_CHECK_EQ(value_it, values.end());
 }
 
 void ChineseChessState::UndoAction(Player player, Action move) {
@@ -183,7 +230,7 @@ absl::optional<std::vector<double>> ChineseChessState::MaybeFinalReturns() const
     return std::vector<double>{DrawUtility(), DrawUtility()};
   }
 
-  if (CurrentBoard().InCheck()) {
+  if (CurrentBoard().CheckMate()) {
     std::vector<double> returns(NumPlayers());
     auto next_to_play = ColorToPlayer(CurrentBoard().ToPlay());
     returns[next_to_play] = WinUtility();
