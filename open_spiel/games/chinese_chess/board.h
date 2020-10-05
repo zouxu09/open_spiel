@@ -16,6 +16,7 @@
 #define OPEN_SPIEL_GAMES_CHINESE_CHESS_BOARD_H_
 
 #include <array>
+#include <functional>
 #include <cstdint>
 #include <ostream>
 #include <vector>
@@ -160,13 +161,6 @@ struct Move {
 class Board {
  public:
   explicit Board();
-
-  void Clear();
-
-  inline Color PointColor(Point p) const { return board_[p.index].color; }
-
-  bool IsLegalMove(Point p, Color c) const;
-
   bool PlayMove(Point p, Color c);
 
   inline uint64_t HashValue() const { return zobrist_hash_; }

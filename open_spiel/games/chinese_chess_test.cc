@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "open_spiel/spiel.h"
+#include "open_spiel/spiel_utils.h"
 #include "open_spiel/tests/basic_tests.h"
 #include "open_spiel/games/chinese_chess.h"
 #include "open_spiel/games/chinese_chess/board.h"
@@ -81,19 +82,6 @@ void ActionsTests() {
   std::cout << m << std::endl;
 }
 
-template <typename T>
-std::ostream& operator<<(std::ostream& os, const std::vector<T>& v)
-{
-    os << "Length: " << v.size() << ", Content: [";
-    for (auto it : v) {
-      os << it;
-      if (it != *v.rbegin())
-        os << ", ";
-    }
-    os << "]";
-    return os;
-}
-
 void StateActionTests() {
   std::shared_ptr<const Game> game = LoadGame("chinese_chess");
   auto state = game->NewInitialState();
@@ -102,7 +90,7 @@ void StateActionTests() {
     // Display state
     std::cout << "State::ToString:\n" << state->ToString() << std::endl;
     std::cout << "State::InformationStateString:\n" << state->InformationStateString() << std::endl;
-    std::cout << "State::ObservationTensor:\n" << state->ObservationTensor() << std::endl;
+    std::cout << "State::ObservationTensor:\n" << absl::StrJoin(state->ObservationTensor(), ",") << std::endl;
 
     // Random policy
     int random_num = rand();

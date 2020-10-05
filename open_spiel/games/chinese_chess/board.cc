@@ -125,12 +125,12 @@ bool Board::IsKingCheck() const {
 bool Board::CheckMate() const {
   bool is_in_check = false;
   GenerateLegalMoves([this, &is_in_check](const Move& move) -> bool {
-      if (at(move.to) == Piece{OppColor(ToPlay()), PieceType::kKing}) {
-        is_in_check = true;
-        return false;
-      }
-      return true;
-    });
+    if (at(move.to) == Piece{OppColor(ToPlay()), PieceType::kKing}) {
+      is_in_check = true;
+      return false;
+    }
+    return true;
+  });
 
   if (is_in_check)
     return true;

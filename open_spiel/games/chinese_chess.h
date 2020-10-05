@@ -76,8 +76,7 @@ class ChineseChessState : public State {
   std::vector<double> Returns() const override;
   std::string InformationStateString(Player player) const override;
   std::string ObservationString(Player player) const override;
-  void ObservationTensor(
-    Player player, absl::Span<float> values) const override;
+  void ObservationTensor(Player player, absl::Span<float> values) const override;
   std::unique_ptr<State> Clone() const override;
   void UndoAction(Player player, Action move) override;
   std::vector<Action> LegalActions() const override;
@@ -93,13 +92,12 @@ class ChineseChessState : public State {
   std::vector<Move>& MovesHistory() { return moves_history_; }
   const std::vector<Move>& MovesHistory() const { return moves_history_; }
 
-  absl::optional<std::vector<double>> MaybeFinalReturns() const;
-
  protected:
   void DoApplyAction(Action action) override;
 
  private:
   void MaybeGenerateLegalActions() const;
+  absl::optional<std::vector<double>> MaybeFinalReturns() const;
 
  private:
   // We have to store every move made to check for repetitions and to implement

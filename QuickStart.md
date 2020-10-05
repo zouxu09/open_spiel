@@ -26,6 +26,12 @@ Run playthrough_test
 python ./open_spiel/integration_tests/playthrough_test.py
 ```
 
+## Try alpha_zero
+
+```bash
+python3 open_spiel/python/examples/alpha_zero.py --game chinese_chess --nn_model mlp --actors 50 --path /home/admin/workspace/alpha_zero/
+```
+
 # Implementation chinese_chess board
 
 - Board definition
