@@ -81,18 +81,35 @@ void ActionsTests() {
   std::cout << m << std::endl;
 }
 
+template <typename T>
+std::ostream& operator<<(std::ostream& os, const std::vector<T>& v)
+{
+    os << "Length: " << v.size() << ", Content: [";
+    for (auto it : v) {
+      os << it;
+      if (it != *v.rbegin())
+        os << ", ";
+    }
+    os << "]";
+    return os;
+}
+
 void StateActionTests() {
   std::shared_ptr<const Game> game = LoadGame("chinese_chess");
   auto state = game->NewInitialState();
-  state->ObservationTensor();
 
   while (!state->IsTerminal()) {
+    // Display state
+    std::cout << "State::ToString:\n" << state->ToString() << std::endl;
+    std::cout << "State::InformationStateString:\n" << state->InformationStateString() << std::endl;
+    std::cout << "State::ObservationTensor:\n" << state->ObservationTensor() << std::endl;
+
+    // Random policy
     int random_num = rand();
     auto legal_actions = state->LegalActions();
     random_num = random_num % legal_actions.size();
     auto action = legal_actions[random_num];
     state->ApplyAction(action);
-    std::cout << state->ToString() << std::endl;
   }
 }
 
@@ -101,11 +118,11 @@ void StateActionTests() {
 }  // namespace open_spiel
 
 int main(int argc, char** argv) {
-  open_spiel::chinese_chess::BasicChineseChessTests();
+  // open_spiel::chinese_chess::BasicChineseChessTests();
   // open_spiel::chinese_chess::FENGenerateAndParseTests();
   // open_spiel::chinese_chess::PointTests();
   // open_spiel::chinese_chess::BoardTests();
   // open_spiel::chinese_chess::ActionsTests();
   // open_spiel::chinese_chess::MoveGenerationTests();
-  // open_spiel::chinese_chess::StateActionTests();
+  open_spiel::chinese_chess::StateActionTests();
 }
