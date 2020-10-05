@@ -83,7 +83,7 @@ Action MoveToAction(const Move& move) {
   std::bitset<7> from(move.from.index);
   std::bitset<7> to(move.to.index);
   std::bitset<3> piece((uint8_t)move.piece.type);
-  std::bitset<2> color((uint8_t)move.piece.color);
+  // std::bitset<2> color((uint8_t)move.piece.color);
 
   std::bitset<19> action;
   int k = 0;
@@ -96,23 +96,23 @@ Action MoveToAction(const Move& move) {
   for (int i = 0; i < piece.size(); ++i, ++k) {
     action[k] = piece[i];
   }
-  for (int i = 0; i < color.size(); ++i, ++k) {
-    action[k] = color[i];
-  }
+  // for (int i = 0; i < color.size(); ++i, ++k) {
+  //   action[k] = color[i];
+  // }
 
   return action.to_ulong();
 }
 
-Move ActionToMove(const Action& action) {
+Move ChineseChessState::ActionToMove(const Action& action) const {
   SPIEL_CHECK_GE(action, 0);
   SPIEL_CHECK_LT(action, kNumDistinctActions);
 
-  std::bitset<19> actionBitset(action);
+  std::bitset<17> actionBitset(action);
 
   std::bitset<7> from;
   std::bitset<7> to;
   std::bitset<3> piece;
-  std::bitset<2> color;
+  // std::bitset<2> color;
 
   int k = 0;
   for (int i = 0; i < from.size(); ++i, ++k) {
@@ -124,12 +124,13 @@ Move ActionToMove(const Action& action) {
   for (int i = 0; i < piece.size(); ++i, ++k) {
     piece[i] = actionBitset[k];
   }
-  for (int i = 0; i < color.size(); ++i, ++k) {
-    color[i] = actionBitset[k];
-  }
+  // for (int i = 0; i < color.size(); ++i, ++k) {
+  //   color[i] = actionBitset[k];
+  // }
 
+  Color current_color = CurrentBoard().ToPlay();
   Move move(from.to_ulong(), to.to_ulong(),
-    Piece{Color{color.to_ulong()}, PieceType{piece.to_ulong()}});
+    Piece{current_color, PieceType{piece.to_ulong()}});
   return move;
 }
 

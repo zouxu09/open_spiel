@@ -33,7 +33,7 @@ namespace chinese_chess {
 
 // Constants.
 inline constexpr int kNumPlayers = 2;
-inline constexpr int kNumDistinctActions = 524288;
+inline constexpr int kNumDistinctActions = 131072;
 inline constexpr int kMaxGameLength = 512;
 
 inline constexpr double LossUtility() { return -1; }
@@ -43,7 +43,6 @@ inline constexpr double WinUtility() { return 1; }
 class Move;
 
 Action MoveToAction(const Move& move);
-Move ActionToMove(const Action& action);
 
 inline int ColorToPlayer(Color c) {
   if (c == Color::kRed) {
@@ -98,6 +97,7 @@ class ChineseChessState : public State {
  private:
   void MaybeGenerateLegalActions() const;
   absl::optional<std::vector<double>> MaybeFinalReturns() const;
+  Move ActionToMove(const Action& action) const;
 
  private:
   // We have to store every move made to check for repetitions and to implement

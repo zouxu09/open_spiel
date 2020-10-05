@@ -73,15 +73,6 @@ void MoveGenerationTests() {
   // SPIEL_CHECK_EQ(CountNumLegalMoves(root_state), 20);
 }
 
-void ActionsTests() {
-  Move move(Point{0, 0}, Point{0, 1}, Piece{Color::kRed, PieceType::kRook});
-  Action action = MoveToAction(move);
-  std::cout << action << std::endl;
-
-  Move m = ActionToMove(action);
-  std::cout << m << std::endl;
-}
-
 void StateActionTests() {
   std::shared_ptr<const Game> game = LoadGame("chinese_chess");
   auto state = game->NewInitialState();
@@ -106,11 +97,10 @@ void StateActionTests() {
 }  // namespace open_spiel
 
 int main(int argc, char** argv) {
-  // open_spiel::chinese_chess::BasicChineseChessTests();
+  open_spiel::chinese_chess::BasicChineseChessTests();
   // open_spiel::chinese_chess::FENGenerateAndParseTests();
   // open_spiel::chinese_chess::PointTests();
   // open_spiel::chinese_chess::BoardTests();
-  // open_spiel::chinese_chess::ActionsTests();
   // open_spiel::chinese_chess::MoveGenerationTests();
   open_spiel::chinese_chess::StateActionTests();
 }
