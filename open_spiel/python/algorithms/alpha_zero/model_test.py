@@ -35,6 +35,7 @@ import numpy as np
 
 from open_spiel.python.algorithms.alpha_zero import model as model_lib
 import pyspiel
+from open_spiel.python import games  # pylint: disable=unused-import
 
 solved = {}
 
@@ -70,7 +71,7 @@ class ModelTest(parameterized.TestCase):
 
   @parameterized.parameters(model_lib.Model.valid_model_types)
   def test_model_learns_simple(self, model_type):
-    game = pyspiel.load_game("tic_tac_toe")
+    game = pyspiel.load_game("python_xiang")
     model = build_model(game, model_type)
     print("Num variables:", model.num_trainable_variables)
     model.print_trainable_variables()

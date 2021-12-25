@@ -22,6 +22,8 @@ from open_spiel.python.algorithms.alpha_zero import alpha_zero
 from open_spiel.python.algorithms.alpha_zero import model as model_lib
 from open_spiel.python.utils import spawn
 
+from open_spiel.python import games  # pylint: disable=unused-import
+
 flags.DEFINE_string("game", "connect_four", "Name of the game.")
 flags.DEFINE_integer("uct_c", 2, "UCT's exploration constant.")
 flags.DEFINE_integer("max_simulations", 300, "How many simulations to run.")

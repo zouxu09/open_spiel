@@ -49,7 +49,7 @@ _GAME_TYPE = pyspiel.GameType(
     min_num_players=_NUM_PLAYERS,
     provides_information_state_string=True,
     provides_information_state_tensor=False,
-    provides_observation_string=True,
+    provides_observation_string=False,
     provides_observation_tensor=True,
     parameter_specification={})
 
@@ -95,7 +95,7 @@ class XiangState(pyspiel.State):
     self._cur_player = 0
     self._player0_score = 0
     self._is_terminal = False
-    self._observation = None
+    self._observation = np.zeros(np.prod((17, 10, 9)), np.float32)
     self.board = GymEnv()
 
   # OpenSpiel (PySpiel) API functions are below. This is the standard set that
@@ -145,12 +145,17 @@ class BoardObserver:
     """Initializes an empty observation tensor."""
     if params:
       raise ValueError(f"Observation parameters not supported; passed {params}")
-    self.tensor = None
-    self.dict = {}
+    shape = (17, 10, 9)
+    self.tensor = np.zeros(np.prod(shape), np.float32)
+    self.dict = {"observation": np.reshape(self.tensor, shape)}
+
   def set_from(self, state, player):
     """Updates `tensor` and `dict` to reflect `state` from PoV of `player`."""
     del player
+    # TODO: performance enhance?
     self.tensor = state.observation()
+    shape = (17, 10, 9)
+    self.dict = {"observation": np.reshape(self.tensor, shape)}
 
   def string_from(self, state, player):
     """Observation of `state` from the PoV of `player`, as a string."""
