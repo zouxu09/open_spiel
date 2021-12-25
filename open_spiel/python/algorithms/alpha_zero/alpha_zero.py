@@ -332,7 +332,7 @@ def learner(*, game, config, actors, evaluators, broadcast_fn, logger):
   value_accuracies = [stats.BasicStats() for _ in range(stage_count)]
   value_predictions = [stats.BasicStats() for _ in range(stage_count)]
   game_lengths = stats.BasicStats()
-  game_lengths_hist = stats.HistogramNumbered(game.max_game_length() + 1)
+  game_lengths_hist = stats.HistogramNumbered(game.max_game_length() + 10)
   outcomes = stats.HistogramNamed(["Player1", "Player2", "Draw"])
   evals = [Buffer(config.evaluation_window) for _ in range(config.eval_levels)]
   total_trajectories = 0
