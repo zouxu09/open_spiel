@@ -86,9 +86,7 @@ class XiangState(pyspiel.State):
   """A python version of the Xiang state."""
 
   def clone(self):
-    clone = self
-    clone.board = copy.deepcopy(self.board)
-    return clone
+    return copy.deepcopy(self)
 
   def __init__(self, game):
     """Constructor; should only be called by Game.new_initial_state."""
@@ -122,7 +120,7 @@ class XiangState(pyspiel.State):
 
   def _action_to_string(self, player, action):
     """Action -> string."""
-    return "{}({})".format(player, self.board.action_to_string(action))
+    return self.board.action_to_string(action)
 
   def is_terminal(self):
     """Returns True if the game is over."""

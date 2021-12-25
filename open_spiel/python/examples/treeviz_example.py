@@ -24,10 +24,11 @@ from absl import logging
 
 import pyspiel
 from open_spiel.python.visualizations import treeviz
+from open_spiel.python import games  # pylint: disable=unused-import
 
 FLAGS = flags.FLAGS
 flags.DEFINE_string("game", "kuhn_poker", "Name of the game")
-flags.DEFINE_string("out", "/tmp/gametree.png", "Name of output file, e.g., "
+flags.DEFINE_string("out", "./gametree.png", "Name of output file, e.g., "
                     "[*.png|*.pdf].")
 flags.DEFINE_enum("prog", "dot", ["dot", "neato", "circo"], "Graphviz layout.")
 flags.DEFINE_boolean("group_infosets", False, "Whether to group infosets.")
