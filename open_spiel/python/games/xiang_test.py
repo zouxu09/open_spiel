@@ -33,7 +33,9 @@ class XiangTest(absltest.TestCase):
     """Checks we can create the game and a state."""
     game = xiang.XiangGame()
     state = game.new_initial_state()
-    # self.assertEqual(str(state), "...\n...\n...")
+    ob_tensor = state.observation_tensor()
+    print(ob_tensor)
+    print(type(ob_tensor))
 
   def test_random_game(self):
     """Tests basic API functions."""
@@ -89,7 +91,6 @@ class XiangTest(absltest.TestCase):
     self.assertEqual(state._cur_player, clone._cur_player)
     self.assertEqual(state._player0_score, clone._player0_score)
     self.assertEqual(state._is_terminal, clone._is_terminal)
-    np.testing.assert_array_equal(state.board, clone.board)
 
 if __name__ == "__main__":
   absltest.main()

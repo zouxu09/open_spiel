@@ -33,7 +33,7 @@ from open_spiel.python.observation import IIGObserverForPublicInfoGame
 import pyspiel
 
 from pyxiang.envs import GymEnv
-
+_OB_SHAPE = (17, 10, 9)
 _NUM_PLAYERS = 2
 _NUM_ACTIONS = 2086
 _MAX_GAME_LEN = 100
@@ -95,8 +95,8 @@ class XiangState(pyspiel.State):
     self._cur_player = 0
     self._player0_score = 0
     self._is_terminal = False
-    self._observation = np.zeros(np.prod((17, 10, 9)), np.float32)
     self.board = GymEnv()
+    self._observation = self.board.get_observation()
 
   # OpenSpiel (PySpiel) API functions are below. This is the standard set that
   # should be implemented by every perfect-information sequential-move game.
@@ -145,17 +145,18 @@ class BoardObserver:
     """Initializes an empty observation tensor."""
     if params:
       raise ValueError(f"Observation parameters not supported; passed {params}")
-    shape = (17, 10, 9)
-    self.tensor = np.zeros(np.prod(shape), np.float32)
-    self.dict = {"observation": np.reshape(self.tensor, shape)}
+    # The observation should contain a 1-D tensor in `self.tensor` and a
+    # dictionary of views onto the tensor, which may be of any shape.
+    # Here the observation is indexed `(state, row, column)`.
+    self.tensor = np.zeros(1530, np.float32)
+    self.dict = {"observation": np.reshape(self.tensor, _OB_SHAPE)}
 
   def set_from(self, state, player):
     """Updates `tensor` and `dict` to reflect `state` from PoV of `player`."""
     del player
-    # TODO: performance enhance?
-    self.tensor = state.observation()
-    shape = (17, 10, 9)
-    self.dict = {"observation": np.reshape(self.tensor, shape)}
+    obs = self.dict["observation"]
+    _obs = state.observation()
+    np.copyto(obs, _obs)
 
   def string_from(self, state, player):
     """Observation of `state` from the PoV of `player`, as a string."""
