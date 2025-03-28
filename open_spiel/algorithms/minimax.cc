@@ -1,10 +1,10 @@
-// Copyright 2019 DeepMind Technologies Ltd. All rights reserved.
+// Copyright 2021 DeepMind Technologies Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,8 +16,8 @@
 
 #include <algorithm>  // std::max
 #include <limits>
+#include <memory>
 
-#include "open_spiel/games/tic_tac_toe.h"
 #include "open_spiel/spiel.h"
 #include "open_spiel/spiel_utils.h"
 
@@ -42,12 +42,14 @@ namespace {
 //     `depth_limit` and the node is not terminal.
 //   maximizing_player_id: The id of the MAX player. The other player is assumed
 //     to be MIN.
+//   use_undo: use the State::Undo for faster run-time.
 //
 // Returns:
 //   The optimal value of the sub-game starting in state (given alpha/beta).
 double _alpha_beta(State* state, int depth, double alpha, double beta,
                    std::function<double(const State&)> value_function,
-                   Player maximizing_player, Action* best_action) {
+                   Player maximizing_player, Action* best_action,
+                   bool use_undo) {
   if (state->IsTerminal()) {
     return state->PlayerReturn(maximizing_player);
   }
@@ -67,12 +69,21 @@ double _alpha_beta(State* state, int depth, double alpha, double beta,
     double value = -std::numeric_limits<double>::infinity();
 
     for (Action action : state->LegalActions()) {
-      state->ApplyAction(action);
-      double child_value =
-          _alpha_beta(state, /*depth=*/depth - 1, /*alpha=*/alpha,
-                      /*beta=*/beta, value_function, maximizing_player,
-                      /*best_action=*/nullptr);
-      state->UndoAction(player, action);
+      double child_value = 0;
+      if (use_undo) {
+        state->ApplyAction(action);
+        child_value =
+            _alpha_beta(state, /*depth=*/depth - 1, /*alpha=*/alpha,
+                        /*beta=*/beta, value_function, maximizing_player,
+                        /*best_action=*/nullptr, use_undo);
+        state->UndoAction(player, action);
+      } else {
+        std::unique_ptr<State> child_state = state->Child(action);
+        child_value =
+            _alpha_beta(child_state.get(), /*depth=*/depth - 1, /*alpha=*/alpha,
+                        /*beta=*/beta, value_function, maximizing_player,
+                        /*best_action=*/nullptr, use_undo);
+      }
 
       if (child_value > value) {
         value = child_value;
@@ -92,12 +103,21 @@ double _alpha_beta(State* state, int depth, double alpha, double beta,
     double value = std::numeric_limits<double>::infinity();
 
     for (Action action : state->LegalActions()) {
-      state->ApplyAction(action);
-      double child_value =
-          _alpha_beta(state, /*depth=*/depth - 1, /*alpha=*/alpha,
-                      /*beta=*/beta, value_function, maximizing_player,
-                      /*best_action=*/nullptr);
-      state->UndoAction(player, action);
+      double child_value = 0;
+      if (use_undo) {
+        state->ApplyAction(action);
+        child_value =
+            _alpha_beta(state, /*depth=*/depth - 1, /*alpha=*/alpha,
+                        /*beta=*/beta, value_function, maximizing_player,
+                        /*best_action=*/nullptr, use_undo);
+        state->UndoAction(player, action);
+      } else {
+        std::unique_ptr<State> child_state = state->Child(action);
+        child_value =
+            _alpha_beta(child_state.get(), /*depth=*/depth - 1, /*alpha=*/alpha,
+                        /*beta=*/beta, value_function, maximizing_player,
+                        /*best_action=*/nullptr, use_undo);
+      }
 
       if (child_value < value) {
         value = child_value;
@@ -202,13 +222,14 @@ double _expectiminimax(const State* state, int depth,
 std::pair<double, Action> AlphaBetaSearch(
     const Game& game, const State* state,
     std::function<double(const State&)> value_function, int depth_limit,
-    Player maximizing_player) {
+    Player maximizing_player, bool use_undo) {
   SPIEL_CHECK_LE(game.NumPlayers(), 2);
 
+  // Check to ensure the correct setup intended for this algorithm.
+  // Note: do no check perfect vs. imperfect information to support use of
+  // minimax as a subroutine of PIMC.
   GameType game_info = game.GetType();
   SPIEL_CHECK_EQ(game_info.chance_mode, GameType::ChanceMode::kDeterministic);
-  SPIEL_CHECK_EQ(game_info.information,
-                 GameType::Information::kPerfectInformation);
   SPIEL_CHECK_EQ(game_info.dynamics, GameType::Dynamics::kSequential);
   SPIEL_CHECK_EQ(game_info.utility, GameType::Utility::kZeroSum);
   SPIEL_CHECK_EQ(game_info.reward_model, GameType::RewardModel::kTerminal);
@@ -228,7 +249,8 @@ std::pair<double, Action> AlphaBetaSearch(
   Action best_action = kInvalidAction;
   double value = _alpha_beta(
       search_root.get(), /*depth=*/depth_limit, /*alpha=*/-infinity,
-      /*beta=*/infinity, value_function, maximizing_player, &best_action);
+      /*beta=*/infinity, value_function, maximizing_player, &best_action,
+      use_undo);
 
   return {value, best_action};
 }

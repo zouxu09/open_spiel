@@ -1,10 +1,10 @@
-// Copyright 2019 DeepMind Technologies Ltd. All rights reserved.
+// Copyright 2021 DeepMind Technologies Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,11 +19,7 @@
 #include <iostream>
 #include <map>
 #include <memory>
-#include <numeric>
-#include <random>
-#include <sstream>
 #include <string>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -68,7 +64,12 @@ struct GameType {
   // Either all possible chance outcomes are explicitly returned as
   // ChanceOutcomes(), and the result of ApplyAction() is deterministic. Or
   // just one ChanceOutcome is returned, and the result of ApplyAction() is
-  // stochastic.
+  // stochastic. If in doubt, it is better to implement stochastic games with
+  // kExplicitStochastic, as this makes more information available to any
+  // learning algorithms you choose to use (i.e. the whole chance outcome
+  // distribution is visible to the algorithm, rather than just the sampled
+  // outcome). For more discussion of this field, see the github issue:
+  // https://github.com/deepmind/open_spiel/issues/792.
   enum class ChanceMode {
     kDeterministic,       // No chance nodes
     kExplicitStochastic,  // Has at least one chance node, all with
@@ -145,6 +146,12 @@ struct GameType {
     return provides_observation_tensor
         || provides_observation_string;
   }
+
+  // Is this a concrete game, i.e. an actual game? Most games in OpenSpiel are
+  // concrete games. Some games that are registered are not concrete games; for
+  // example, game wrappers and other game transforms, or games that are
+  // constructed from a file (e.g. efg_game).
+  bool is_concrete = true;
 };
 
 // Information about a concrete Game instantiation.
@@ -172,7 +179,7 @@ struct GameInfo {
 
   // The total utility for all players, if this is a constant-sum-utility game.
   // Should be zero if the game is zero-sum.
-  double utility_sum;
+  absl::optional<double> utility_sum;
 
   // The maximum number of player decisions in a game. Does not include chance
   // events. For a simultaneous action game, this is the maximum number of joint
@@ -649,10 +656,11 @@ class State {
   // be interpreted as a cumulative distribution function, and will be used to
   // sample from the legal chance actions. A good choice would be
   // absl/std::uniform_real_distribution<double>(0., 1.).
+  //
+  // Default implementation checks if the game is a perfect information game.
+  // If so, it returns a clone, otherwise an error is thrown.
   virtual std::unique_ptr<State> ResampleFromInfostate(
-      int player_id, std::function<double()> rng) const {
-    SpielFatalError("ResampleFromInfostate() not implemented.");
-  }
+      int player_id, std::function<double()> rng) const;
 
   // Returns a vector of states & probabilities that are consistent with the
   // infostate from the view of the current player. By default, this is not
@@ -758,6 +766,9 @@ class Game : public std::enable_shared_from_this<Game> {
 
   // Returns a newly allocated initial state.
   virtual std::unique_ptr<State> NewInitialState() const = 0;
+
+  // Return a new state from a string description. This is an unspecified and
+  // unrestricted function to construct a new state from a string.
   virtual std::unique_ptr<State> NewInitialState(const std::string& str) const {
     SpielFatalError("NewInitialState from string is not implemented.");
   }
@@ -801,11 +812,8 @@ class Game : public std::enable_shared_from_this<Game> {
   const GameType& GetType() const { return game_type_; }
 
   // The total utility for all players, if this is a constant-sum-utility game.
-  // Should return 0. if the game is zero-sum.
-  virtual double UtilitySum() const {
-    SpielFatalError("UtilitySum unimplemented.");
-    return 0.;
-  }
+  // Should return 0 if the game is zero-sum.
+  virtual absl::optional<double> UtilitySum() const { return absl::nullopt; }
 
   // Describes the structure of the information state representation in a
   // tensor-like format. This is especially useful for experiments involving
@@ -912,7 +920,11 @@ class Game : public std::enable_shared_from_this<Game> {
 
   // Returns true if these games are equal, false otherwise.
   virtual bool operator==(const Game& other) const {
-    return ToString() == other.ToString();
+    // GetParameters() includes default values. So comparing GetParameters
+    // instead of game_parameters_ makes sure that game equality is independent
+    // of the presence of explicitly passed game parameters with default values.
+    return game_type_.short_name == other.game_type_.short_name &&
+           GetParameters() == other.GetParameters();
   }
 
   // Get and set game's internal RNG state for de/serialization purposes. These
@@ -930,6 +942,9 @@ class Game : public std::enable_shared_from_this<Game> {
   }
 
   // Returns an Observer, used to obtain observations of the game state.
+  // If the requested iig_obs_type is not supported by the game, the
+  // implementation must return a nullptr. If params are provided and
+  // unsupported this can result in an error.
   // The observations are created according to requested observation type.
   // Games can include additional observation fields when requested by
   // `params`.
@@ -949,7 +964,8 @@ class Game : public std::enable_shared_from_this<Game> {
       absl::optional<IIGObservationType> iig_obs_type,
       const GameParameters& params) const;
   // Returns an observer that uses the observation or informationstate tensor
-  // or string as defined directly on the state.
+  // or string as defined directly on the state. Returns a nullptr if the
+  // requested iig_obs_type is not supported.
   std::shared_ptr<Observer> MakeBuiltInObserver(
       absl::optional<IIGObservationType> iig_obs_type) const;
 
@@ -1043,8 +1059,11 @@ class GameRegisterer {
   static std::shared_ptr<const Game> CreateByName(const std::string& short_name,
                                                   const GameParameters& params);
 
+  static std::vector<std::string> GamesWithKnownIssues();
   static std::vector<std::string> RegisteredNames();
+  static std::vector<std::string> RegisteredConcreteNames();
   static std::vector<GameType> RegisteredGames();
+  static std::vector<GameType> RegisteredConcreteGames();
   static bool IsValidName(const std::string& short_name);
   static void RegisterGame(const GameType& game_type, CreateFunc creator);
 
@@ -1057,6 +1076,9 @@ class GameRegisterer {
     static std::map<std::string, std::pair<GameType, CreateFunc>> impl;
     return impl;
   }
+
+  static std::vector<std::string> GameTypesToShortNames(
+      const std::vector<GameType>& game_types);
 };
 
 // Returns true if the game is registered, false otherwise.
@@ -1158,6 +1180,18 @@ std::string ActionsToString(const State& state,
 void SpielFatalErrorWithStateInfo(const std::string& error_msg,
                                   const Game& game,
                                   const State& state);
+
+
+// Builds the state from a history string. Checks legalities of every action
+// on the way. The history string is a comma-separated actions with whitespace
+// allowed, and can include square brackets on either side:
+//    E.g. "[1, 3, 4, 5, 6]"  and "57,12,72,85" are both valid.
+// Proceeds up to a maximum of max_steps, unless max_steps is negative, in
+// which case it proceeds until the end of the sequence.
+std::pair<std::shared_ptr<const Game>,
+          std::unique_ptr<State>> BuildStateFromHistoryString(
+    const std::string& game_string, const std::string& history,
+    int max_steps = -1);
 
 }  // namespace open_spiel
 

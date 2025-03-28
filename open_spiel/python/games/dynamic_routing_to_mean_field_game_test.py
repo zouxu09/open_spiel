@@ -1,10 +1,10 @@
-# Copyright 2019 DeepMind Technologies Ltd. All rights reserved.
+# Copyright 2019 DeepMind Technologies Limited
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#      http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,7 @@ class DerivedNPlayerPolicyFromMeanFieldPolicyTest(absltest.TestCase):
 
   def test_state_conversion_method(self):
     """Test N player game state to mean field game state conversion."""
-    # TODO(cabannes): test state conversion.
+    # Test state conversion.
 
   def test_uniform_mfg_policy_conversion_to_n_player_uniform_policy(self):
     """Test conversion of uniform to uniform policy."""
@@ -53,8 +53,8 @@ class DerivedNPlayerPolicyFromMeanFieldPolicyTest(absltest.TestCase):
 
   def test_pigou_network_game_outcome_optimal_mfg_policy_in_n_player_game(self):
     """Test MFG Nash equilibrium policy for the Pigou network."""
-    # TODO(cabannes): test policy.
-    # TODO(cabannes): test game outcome.
+    # Test policy.
+    # Test game outcome.
 
   def test_learning_and_applying_mfg_policy_in_n_player_game(self):
     """Test converting learnt MFG policy default game."""

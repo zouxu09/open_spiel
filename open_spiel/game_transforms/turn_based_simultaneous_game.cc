@@ -1,10 +1,10 @@
-// Copyright 2019 DeepMind Technologies Ltd. All rights reserved.
+// Copyright 2021 DeepMind Technologies Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,9 +18,14 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
+#include "open_spiel/abseil-cpp/absl/strings/str_cat.h"
+#include "open_spiel/abseil-cpp/absl/types/span.h"
+#include "open_spiel/game_parameters.h"
 #include "open_spiel/spiel.h"
 #include "open_spiel/spiel_globals.h"
+#include "open_spiel/spiel_utils.h"
 
 namespace open_spiel {
 
@@ -46,7 +51,9 @@ const GameType kGameType{
     /*provides_observation_tensor=*/true,
     {{"game",
       GameParameter(GameParameter::Type::kGame, /*is_mandatory=*/true)}},
-    /*default_loadable=*/false};
+    /*default_loadable=*/false,
+    /*provides_factored_observation_string=*/false,
+    /*is_concrete=*/false};
 
 std::shared_ptr<const Game> Factory(const GameParameters& params) {
   return ConvertToTurnBased(*LoadGame(params.at("game").game_value()));
@@ -57,8 +64,10 @@ REGISTER_SPIEL_GAME(kGameType, Factory);
 
 TurnBasedSimultaneousState::TurnBasedSimultaneousState(
     std::shared_ptr<const Game> game, std::unique_ptr<State> state)
-    : State(game), state_(std::move(state)), action_vector_(game->NumPlayers()),
-      rollout_mode_(false) {
+    : State(game),
+      state_(std::move(state)),
+      action_vector_(game->NumPlayers()),
+      rollout_mode_(kNoRollout) {
   DetermineWhoseTurn();
 }
 
@@ -71,7 +80,7 @@ void TurnBasedSimultaneousState::DetermineWhoseTurn() {
     // When the underlying game's node is at a simultaneous move node, they get
     // rolled out as turn-based, starting with player 0.
     current_player_ = -1;
-    rollout_mode_ = true;
+    rollout_mode_ = kStartRollout;
     RolloutModeIncrementCurrentPlayer();
     // If the rollout mode is used, then at least one player should have a valid
     // action.
@@ -79,7 +88,7 @@ void TurnBasedSimultaneousState::DetermineWhoseTurn() {
   } else {
     // Otherwise, just execute it normally.
     current_player_ = state_->CurrentPlayer();
-    rollout_mode_ = false;
+    rollout_mode_ = kNoRollout;
   }
 }
 
@@ -104,6 +113,7 @@ void TurnBasedSimultaneousState::DoApplyAction(Action action_id) {
     if (rollout_mode_) {
       // If we are currently rolling out a simultaneous move node, then simply
       // buffer the action in the action vector.
+      rollout_mode_ = kMidRollout;
       action_vector_[current_player_] = action_id;
       RolloutModeIncrementCurrentPlayer();
       // Check if we then need to apply it.
@@ -152,6 +162,11 @@ bool TurnBasedSimultaneousState::IsTerminal() const {
 
 std::vector<double> TurnBasedSimultaneousState::Returns() const {
   return state_->Returns();
+}
+
+std::vector<double> TurnBasedSimultaneousState::Rewards() const {
+  return rollout_mode_ == kMidRollout ? std::vector<double>(num_players_, 0)
+                                      : state_->Rewards();
 }
 
 std::string TurnBasedSimultaneousState::InformationStateString(

@@ -1,4 +1,8 @@
 add_library (game_transforms OBJECT
+  add_noise.cc
+  add_noise.h
+  cached_tree.cc
+  cached_tree.h
   coop_to_1p.cc
   coop_to_1p.h
   efg_writer.cc
@@ -12,9 +16,11 @@ add_library (game_transforms OBJECT
   restricted_nash_response.cc
   restricted_nash_response.h
   start_at.cc
-  start_at.h  
+  start_at.h
   turn_based_simultaneous_game.cc
   turn_based_simultaneous_game.h
+  zerosum.cc
+  zerosum.h
 )
 target_include_directories (game_transforms PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -35,6 +41,18 @@ add_executable(misere_test
                ${OPEN_SPIEL_OBJECTS}
                $<TARGET_OBJECTS:tests>)
 add_test(misere_test misere_test)
+
+add_executable(add_noise_test
+               add_noise_test.cc
+               ${OPEN_SPIEL_OBJECTS}
+               $<TARGET_OBJECTS:tests>)
+add_test(add_noise_test add_noise_test)
+
+add_executable(cached_tree_test
+               cached_tree_test.cc
+               ${OPEN_SPIEL_OBJECTS}
+               $<TARGET_OBJECTS:tests>)
+add_test(cached_tree_test cached_tree_test)
 
 add_executable(coop_to_1p_test
                coop_to_1p_test.cc
@@ -65,3 +83,9 @@ add_executable(start_at_test
   ${OPEN_SPIEL_OBJECTS}
   $<TARGET_OBJECTS:tests>)
 add_test(start_at_test start_at_test)
+
+add_executable(zerosum_test
+               zerosum_test.cc
+               ${OPEN_SPIEL_OBJECTS}
+               $<TARGET_OBJECTS:tests>)
+add_test(zerosum_test zerosum_test)

@@ -1,10 +1,10 @@
-// Copyright 2019 DeepMind Technologies Ltd. All rights reserved.
+// Copyright 2021 DeepMind Technologies Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,6 +13,13 @@
 // limitations under the License.
 
 #include "open_spiel/game_transforms/misere.h"
+
+#include <memory>
+
+#include "open_spiel/abseil-cpp/absl/strings/str_cat.h"
+#include "open_spiel/game_parameters.h"
+#include "open_spiel/game_transforms/game_wrapper.h"
+#include "open_spiel/spiel.h"
 
 namespace open_spiel {
 namespace {
@@ -35,7 +42,7 @@ const GameType kGameType{/*short_name=*/"misere",
                                                  /*is_mandatory=*/true)}},
                          /*default_loadable=*/false,
                          /*provides_factored_observation_string=*/true,
-                        };
+                         /*is_concrete=*/false};
 
 GameType MisereGameType(GameType game_type) {
   game_type.short_name = kGameType.short_name;

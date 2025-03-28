@@ -1,10 +1,10 @@
-# Copyright 2019 DeepMind Technologies Ltd. All rights reserved.
+# Copyright 2019 DeepMind Technologies Limited
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#      http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,10 +35,10 @@ class NetworkTest(absltest.TestCase):
     self.assertEqual(self.network.get_successors("D"), [])
     self.assertTrue(self.network.is_location_at_sink_node("A->D"))
     self.assertFalse(self.network.is_location_at_sink_node("O->A"))
-    self.assertEqual(self.network.get_action_id_from_movement("O", "A"), 1)
-    self.assertEqual(self.network.get_action_id_from_movement("A", "D"), 2)
-    self.assertEqual(self.network.get_road_section_from_action_id(1), "O->A")
-    self.assertEqual(self.network.get_road_section_from_action_id(2), "A->D")
+    self.assertEqual(self.network.get_action_id_from_movement("A", "D"), 1)
+    self.assertEqual(self.network.get_action_id_from_movement("O", "A"), 2)
+    self.assertEqual(self.network.get_road_section_from_action_id(1), "A->D")
+    self.assertEqual(self.network.get_road_section_from_action_id(2), "O->A")
 
   def test_get_successors_with_wrong_node(self):
     """Test get successors on non existing node."""
@@ -76,43 +76,43 @@ class NetworkTest(absltest.TestCase):
       self.network.get_road_section_from_action_id(0)
 
   def test_num_links_method(self):
-    # TODO(cabannes): write.
+    # Write.
     pass
 
   def test_num_actions_method(self):
-    # TODO(cabannes): write.
+    # Write.
     pass
 
   def test_links(self):
-    # TODO(cabannes): write.
+    # Write.
     pass
 
   def test_check_list_of_vehicles_is_correct_method(self):
-    # TODO(cabannes): write.
+    # Write.
     pass
 
   def test_check_list_of_od_demand_is_correct_method(self):
-    # TODO(cabannes): write.
+    # Write.
     pass
 
   def test_str_method(self):
-    # TODO(cabannes): write.
+    # Write.
     pass
 
   def test_get_travel_time_methods(self):
-    # TODO(cabannes): write.
+    # Write.
     pass
 
   def test_assert_valid_action_methods(self):
-    # TODO(cabannes): write.
+    # Write.
     pass
 
   def test_default_travel_time_methods(self):
-    # TODO(cabannes): write.
+    # Write.
     pass
 
   def test_customable_travel_time_methods(self):
-    # TODO(cabannes): write.
+    # Write.
     pass
 
 

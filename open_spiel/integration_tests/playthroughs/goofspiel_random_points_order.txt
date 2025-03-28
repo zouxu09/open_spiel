@@ -101,7 +101,7 @@ ObservationTensor(1).win_sequence: ◯◯
                                    ◯◯
                                    ◯◯
                                    ◯◯
-ChanceOutcomes() = [(0, 0.25), (1, 0.25), (2, 0.25), (3, 0.25)]
+ChanceOutcomes() = [(0,0.25), (1,0.25), (2,0.25), (3,0.25)]
 LegalActions() = [0, 1, 2, 3]
 StringLegalActions() = ["Deal 1", "Deal 2", "Deal 3", "Deal 4"]
 
@@ -176,8 +176,8 @@ ObservationTensor(1).win_sequence: ◯◯
                                    ◯◯
                                    ◯◯
                                    ◯◯
-Rewards() = [0.0, 0.0]
-Returns() = [0.0, 0.0]
+Rewards() = [0, 0]
+Returns() = [0, 0]
 LegalActions(0) = [0, 1, 2, 3]
 LegalActions(1) = [0, 1, 2, 3]
 StringLegalActions(0) = ["[P0]Bid: 1", "[P0]Bid: 2", "[P0]Bid: 3", "[P0]Bid: 4"]
@@ -254,7 +254,7 @@ ObservationTensor(1).win_sequence: ◯◯
                                    ◯◯
                                    ◯◯
                                    ◯◯
-ChanceOutcomes() = [(0, 0.3333333333333333), (1, 0.3333333333333333), (2, 0.3333333333333333)]
+ChanceOutcomes() = [(0,0.333333), (1,0.333333), (2,0.333333)]
 LegalActions() = [0, 1, 2]
 StringLegalActions() = ["Deal 1", "Deal 2", "Deal 3"]
 
@@ -329,8 +329,8 @@ ObservationTensor(1).win_sequence: ◯◯
                                    ◯◯
                                    ◯◯
                                    ◯◯
-Rewards() = [0.0, 0.0]
-Returns() = [0.0, 0.0]
+Rewards() = [0, 0]
+Returns() = [0, 0]
 LegalActions(0) = [1, 2, 3]
 LegalActions(1) = [1, 2, 3]
 StringLegalActions(0) = ["[P0]Bid: 2", "[P0]Bid: 3", "[P0]Bid: 4"]
@@ -411,8 +411,8 @@ ObservationTensor(1).win_sequence: ◯◯
                                    ◉◯
                                    ◯◯
                                    ◯◯
-Rewards() = [0.0, 0.0]
-Returns() = [0.0, 0.0]
+Rewards() = [0, 0]
+Returns() = [0, 0]
 LegalActions(0) = [1, 3]
 LegalActions(1) = [2, 3]
 StringLegalActions(0) = ["[P0]Bid: 2", "[P0]Bid: 4"]
@@ -489,5 +489,5 @@ ObservationTensor(1).win_sequence: ◯◯
                                    ◉◯
                                    ◉◯
                                    ◯◉
-Rewards() = [0.0, 0.0]
-Returns() = [0.0, 0.0]
+Rewards() = [0, 0]
+Returns() = [0, 0]

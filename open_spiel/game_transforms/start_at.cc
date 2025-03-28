@@ -1,10 +1,10 @@
-// Copyright 2019 DeepMind Technologies Ltd. All rights reserved.
+// Copyright 2021 DeepMind Technologies Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,7 +14,19 @@
 
 #include "open_spiel/game_transforms/start_at.h"
 
+#include <algorithm>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "open_spiel/abseil-cpp/absl/strings/numbers.h"
+#include "open_spiel/abseil-cpp/absl/strings/str_cat.h"
+#include "open_spiel/abseil-cpp/absl/strings/str_split.h"
+#include "open_spiel/abseil-cpp/absl/strings/string_view.h"
+#include "open_spiel/game_parameters.h"
 #include "open_spiel/game_transforms/game_wrapper.h"
+#include "open_spiel/spiel.h"
 #include "open_spiel/spiel_utils.h"
 
 namespace open_spiel {
@@ -42,7 +54,7 @@ const GameType kGameType{
       GameParameter(GameParameter::Type::kString, /*is_mandatory=*/true)}},
     /*default_loadable=*/false,
     /*provides_factored_observation_string=*/true,
-};
+    /*is_concrete=*/false};
 
 std::shared_ptr<const Game> Factory(const GameParameters& params) {
   auto game = LoadGame(params.at("game").game_value());
@@ -63,7 +75,7 @@ std::vector<Action> HistoryFromString(const std::string& str) {
   std::vector<Action> history;
   if (str.empty()) return history;  // Identity transformation.
 
-  std::vector<std::string_view> str_actions =
+  std::vector<absl::string_view> str_actions =
       absl::StrSplit(str, kActionSeparator);
   for (const auto& str_action : str_actions) {
     Action a;

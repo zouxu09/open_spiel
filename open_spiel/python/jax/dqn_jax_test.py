@@ -1,10 +1,10 @@
-# Copyright 2019 DeepMind Technologies Ltd. All rights reserved.
+# Copyright 2019 DeepMind Technologies Limited
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#      http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,10 +13,6 @@
 # limitations under the License.
 
 """Tests for open_spiel.python.jax.dqn."""
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
 
 from absl.testing import absltest
 
@@ -47,7 +43,8 @@ class DQNTest(absltest.TestCase):
                     replay_buffer_capacity=100,
                     batch_size=5,
                     epsilon_start=0.02,
-                    epsilon_end=0.01)
+                    epsilon_end=0.01,
+                    gradient_clipping=1.0)
     total_reward = 0
 
     for _ in range(100):

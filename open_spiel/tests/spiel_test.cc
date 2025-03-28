@@ -1,10 +1,10 @@
-// Copyright 2019 DeepMind Technologies Ltd. All rights reserved.
+// Copyright 2021 DeepMind Technologies Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,18 +14,19 @@
 
 #include "open_spiel/spiel.h"
 
+#include <algorithm>
 #include <functional>
+#include <iostream>
 #include <memory>
-#include <random>
 #include <string>
+#include <utility>
 #include <vector>
 
-#include "open_spiel/games/kuhn_poker.h"
-#include "open_spiel/games/leduc_poker.h"
-#include "open_spiel/games/liars_dice.h"
-#include "open_spiel/games/tic_tac_toe.h"
+#include "open_spiel/abseil-cpp/absl/strings/str_cat.h"
+#include "open_spiel/game_parameters.h"
 #include "open_spiel/policy.h"
 #include "open_spiel/simultaneous_move_game.h"
+#include "open_spiel/spiel_globals.h"
 #include "open_spiel/spiel_utils.h"
 #include "open_spiel/tests/basic_tests.h"
 
@@ -49,6 +50,14 @@ void KuhnTests() {
         *LoadGame("kuhn_poker", {{"players", GameParameter(players)}}),
         /*num_sims=*/100);
   }
+}
+
+void GameEqualityTests() {
+  // 2 players is the default in kuhn poker.
+  SPIEL_CHECK_TRUE(
+      *LoadGame("kuhn_poker") == *LoadGame("kuhn_poker(players=2)"));
+  SPIEL_CHECK_FALSE(
+      *LoadGame("kuhn_poker") == *LoadGame("kuhn_poker(players=3)"));
 }
 
 void TicTacToeTests() {
@@ -135,8 +144,13 @@ void PolicyTest() {
   auto random_policy_default_seed = [](const Game& game) {
     return GetRandomPolicy(game);
   };
+  auto flat_dirichlet_policy_default_seed = [](const Game& game) {
+    return GetFlatDirichletPolicy(game);
+  };
   std::vector<PolicyGenerator> policy_generators = {
-      GetUniformPolicy, random_policy_default_seed, GetFirstActionPolicy};
+      GetUniformPolicy, random_policy_default_seed, GetFirstActionPolicy,
+      flat_dirichlet_policy_default_seed,
+  };
 
   // For some reason, this can't seem to be brace-initialized, so instead we use
   // push_back.
@@ -322,6 +336,27 @@ void PolicySerializationTest() {
   DeserializePolicy(std::make_unique<UniformPolicy>()->Serialize());
 }
 
+void ConcreteGamesTest() {
+  // Note: not intended to be an exhaustive list.
+  std::vector<std::string> non_concrete_game_names = {
+      "add_noise",     "cached_tree",
+      "coop_to_1p",    "efg_game",
+      "misere",        "normal_form_extensive_game",
+      "repeated_game", "restricted_nash_response",
+      "start_at",      "turn_based_simultaneous_game",
+      "zero_sum"};
+  std::vector<GameType> concrete_game_types =
+      GameRegisterer::RegisteredConcreteGames();
+  SPIEL_CHECK_GT(concrete_game_types.size(), 0);
+  for (const auto& game_type : concrete_game_types) {
+    std::cout << "Loading game: " << game_type.short_name << std::endl;
+    SPIEL_CHECK_TRUE(game_type.is_concrete);
+    auto iter = std::find(non_concrete_game_names.begin(),
+                          non_concrete_game_names.end(), game_type.short_name);
+    SPIEL_CHECK_TRUE(iter == non_concrete_game_names.end());
+  }
+}
+
 }  // namespace
 }  // namespace testing
 }  // namespace open_spiel
@@ -329,10 +364,12 @@ void PolicySerializationTest() {
 int main(int argc, char** argv) {
   open_spiel::testing::GeneralTests();
   open_spiel::testing::KuhnTests();
+  open_spiel::testing::GameEqualityTests();
   open_spiel::testing::TicTacToeTests();
   open_spiel::testing::FlatJointactionTest();
   open_spiel::testing::PolicyTest();
   open_spiel::testing::LeducPokerDeserializeTest();
   open_spiel::testing::GameParametersTest();
   open_spiel::testing::PolicySerializationTest();
+  open_spiel::testing::ConcreteGamesTest();
 }

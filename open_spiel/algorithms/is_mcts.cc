@@ -1,10 +1,10 @@
-// Copyright 2019 DeepMind Technologies Ltd. All rights reserved.
+// Copyright 2021 DeepMind Technologies Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,6 +16,8 @@
 
 #include <algorithm>
 #include <numeric>
+#include <utility>
+#include <vector>
 
 #include "open_spiel/abseil-cpp/absl/random/discrete_distribution.h"
 #include "open_spiel/abseil-cpp/absl/random/distributions.h"
@@ -180,20 +182,29 @@ ActionsAndProbs ISMCTSBot::GetFinalPolicy(const State& state,
   return policy;
 }
 
-std::unique_ptr<State> ISMCTSBot::ISMCTSBot::SampleRootState(
-    const State& state) {
+std::unique_ptr<State> ISMCTSBot::SampleRootState(const State& state) {
   if (max_world_samples_ == kUnlimitedNumWorldSamples) {
-    return state.ResampleFromInfostate(state.CurrentPlayer(),
-                                       [this]() { return RandomNumber(); });
+    return ResampleFromInfostate(state);
   } else if (root_samples_.size() < max_world_samples_) {
-    root_samples_.push_back(state.ResampleFromInfostate(
-        state.CurrentPlayer(), [this]() { return RandomNumber(); }));
+    root_samples_.push_back(ResampleFromInfostate(state));
     return root_samples_.back()->Clone();
   } else if (root_samples_.size() == max_world_samples_) {
     int idx = absl::Uniform(rng_, 0u, root_samples_.size());
     return root_samples_[idx]->Clone();
   } else {
     SpielFatalError("Case not handled (badly set max_world_samples..?)");
+  }
+}
+
+std::unique_ptr<State> ISMCTSBot::ResampleFromInfostate(const State& state) {
+  if (resampler_cb_) {
+    return resampler_cb_(state, state.CurrentPlayer(),
+                         [this]() { return RandomNumber(); });
+  } else {
+    // Try domain-specific implementation
+    // (could be not implemented in some games).
+    return state.ResampleFromInfostate(state.CurrentPlayer(),
+                                       [this]() { return RandomNumber(); });
   }
 }
 
@@ -268,7 +279,7 @@ Action ISMCTSBot::SelectActionTreePolicy(
 }
 
 Action ISMCTSBot::SelectActionUCB(ISMCTSNode* node) {
-  std::vector<Action> candidates;
+  std::vector<std::pair<Action, double>> actions_and_values;
   double max_value = -std::numeric_limits<double>::infinity();
 
   for (const auto& action_and_child : node->child_info) {
@@ -282,14 +293,14 @@ Action ISMCTSBot::SelectActionUCB(ISMCTSNode* node) {
                      uct_c_ * std::sqrt(std::log(node->total_visits) /
                                         action_and_child.second.visits);
 
-    if (uct_val > max_value + kTieTolerance) {
-      candidates.clear();
-      candidates.push_back(action);
-      max_value = uct_val;
-    } else if (uct_val > max_value - kTieTolerance &&
-               uct_val < max_value + kTieTolerance) {
-      candidates.push_back(action);
-      max_value = uct_val;
+    actions_and_values.push_back({action, uct_val});
+    max_value = std::max(max_value, uct_val);
+  }
+
+  std::vector<Action> candidates;
+  for (const auto& action_and_value : actions_and_values) {
+    if (action_and_value.second > max_value - kTieTolerance) {
+      candidates.push_back(action_and_value.first);
     }
   }
 
